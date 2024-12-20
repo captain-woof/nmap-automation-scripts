@@ -107,7 +107,7 @@ function port_scan_udp() {
 }
 
 # Perform host discovery
-host_discovery ${1}
+host_discovery "${1}"
 
 # Perform TCP and UDP port scans on discovered hosts
 HOSTS_DISCOVERED=$(cat "${FILE_RESULTS_AVAILABLE_HOSTS}.nmap" | grep "Nmap scan report for" | grep -iv "host down" | cut -d " " -f 5 | xargs --replace={} echo -n "{} ")
