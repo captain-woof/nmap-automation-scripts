@@ -45,9 +45,7 @@ function port_scan_tcp() {
 
     # Do all TCP ports
     echo ">>>> SCANNING ALL TCP ports in ${HOST}"
-    sudo nmap ${OUT_OF_SCOPE_ARG} --min-hostgroup ${MIN_HOSTGROUP} -Pn --disable-arp-ping -${SCAN_SPEED} -sS --source-port 53 -p- -v -oA "${FILE_RESULTS_TCP_ALL}" ${HOST} | tee -a "${DIR_RESULTS}/nmap_logs.txt"
-    PORTS_TCP_ALL=$(cat "${FILE_RESULTS_TCP_ALL}.nmap" | grep "/tcp " | tr -s " " | cut -d " " -f 1 | cut -d "/" -f 1 | xargs --replace echo -ne {},)
-    sudo nmap ${OUT_OF_SCOPE_ARG} --min-hostgroup ${MIN_HOSTGROUP} -Pn --disable-arp-ping -${SCAN_SPEED} -sS --source-port 53 -p ${PORTS_TCP_ALL:0:-1} -sC -sV -v -oA "${FILE_RESULTS_TCP_ALL_DETAILED}" ${HOST} | tee -a "${DIR_RESULTS}/nmap_logs.txt"
+    sudo nmap ${OUT_OF_SCOPE_ARG} --min-hostgroup ${MIN_HOSTGROUP} -Pn --disable-arp-ping -${SCAN_SPEED} -sS --source-port 53 -p- -sC -sV -v -oA "${FILE_RESULTS_TCP_ALL_DETAILED}" ${HOST} | tee -a "${DIR_RESULTS}/nmap_logs.txt"
 }
 
 # Function - UDP top ports scan on discovered hosts
