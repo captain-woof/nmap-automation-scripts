@@ -64,7 +64,7 @@ function port_scan_udp_top() {
 
     # Do top UDP ports
     echo ">>>> SCANNING TOP ${NUM_TOP_PORTS_UDP} UDP ports in ${HOSTS}"
-    sudo nmap ${OUT_OF_SCOPE_ARG} --min-hostgroup ${MIN_HOSTGROUP} -Pn --disable-arp-ping -${SCAN_SPEED} -sU -O --source-port 53 --top-ports ${NUM_TOP_PORTS_UDP} -sC -sV -v -oA "${FILE_RESULTS_UDP_TOP_DETAILED}" ${HOSTS} | tee -a "${DIR_RESULTS}/nmap_logs.txt"
+    sudo nmap ${OUT_OF_SCOPE_ARG} --min-hostgroup ${MIN_HOSTGROUP} -Pn --disable-arp-ping -${SCAN_SPEED} -sU -O --source-port 53 --top-ports ${NUM_TOP_PORTS_UDP} -v -oA "${FILE_RESULTS_UDP_TOP_DETAILED}" ${HOSTS} | tee -a "${DIR_RESULTS}/nmap_logs.txt"
 }
 
 # Function - UDP all ports scan on discovered hosts
