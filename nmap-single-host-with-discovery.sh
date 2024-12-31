@@ -9,7 +9,7 @@ fi
 # Init - customisable
 HOST=${1}
 NUM_TOP_PORTS_TCP=1000
-NUM_TOP_PORTS_UDP=100
+NUM_TOP_PORTS_UDP=1000
 DIR_NAME_RESULTS="nmap"
 SCAN_SPEED="T4"
 
@@ -40,11 +40,7 @@ sudo nmap -${SCAN_SPEED} -sS --source-port 53 -p- -sC -sV -O -v -oA "${FILE_RESU
 # Do top UDP ports
 echo ">>>> SCANNING TOP ${NUM_TOP_PORTS_UDP} UDP ports"
 sudo nmap -${SCAN_SPEED} -sU --source-port 53 --top-ports ${NUM_TOP_PORTS_UDP} -v -oA "${FILE_RESULTS_UDP_TOP}" ${HOST} | tee -a "${DIR_RESULTS}/nmap_logs.txt"
-PORTS_UDP_TOP=$(cat "${FILE_RESULTS_UDP_TOP}.nmap" | grep "/udp " | tr -s " " | cut -d " " -f 1 | cut -d "/" -f 1 | xargs --replace echo -ne {},)
-sudo nmap -${SCAN_SPEED} -sU --source-port 53 -p ${PORTS_UDP_TOP:0:-1} -sC -sV -v -oA "${FILE_RESULTS_UDP_TOP_DETAILED}" ${HOST} | tee -a "${DIR_RESULTS}/nmap_logs.txt"
 
 # Do all UDP ports
 echo ">>>> SCANNING ALL UDP ports"
 sudo nmap -${SCAN_SPEED} -sU --source-port 53 -p- -v -oA "${FILE_RESULTS_UDP_ALL}" ${HOST} | tee -a "${DIR_RESULTS}/nmap_logs.txt"
-PORTS_UDP_ALL=$(cat "${FILE_RESULTS_UDP_ALL}.nmap" | grep "/udp " | tr -s " " | cut -d " " -f 1 | cut -d "/" -f 1 | xargs --replace echo -ne {},)
-sudo nmap -${SCAN_SPEED} -sU --source-port 53 -p ${PORTS_UDP_ALL:0:-1} -v -oA "${FILE_RESULTS_UDP_ALL_DETAILED}" ${HOST} | tee -a "${DIR_RESULTS}/nmap_logs.txt"
