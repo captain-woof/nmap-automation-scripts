@@ -23,4 +23,4 @@ mkdir -p ${DIR_RESULTS}
 
 # Start scan
 echo ">>>> STARTING HOSTS DISCOVERY IN ${HOSTS}"
-sudo nmap -${SCAN_SPEED} -sn -PS[80,8080,8000,443,445,137,139,138,25,587,143,993,110,995,22,21,5985,53,88] -PU[123,88,53] -PE --source-port 53 -oA "${FILE_RESULTS_HOSTS}" ${HOSTS} | tee -a "${DIR_RESULTS}/nmap_logs.txt"
+sudo nmap -v -${SCAN_SPEED} -sn -PS[80,8080,8000,443,445,137,139,138,25,587,143,993,110,995,22,21,5985,53,88] -PU[123,88,53] -PE --source-port 53 -oA "${FILE_RESULTS_HOSTS}" ${HOSTS} | tee -a "${DIR_RESULTS}/nmap_logs.txt"
