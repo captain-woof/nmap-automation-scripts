@@ -1,19 +1,5 @@
-# How to use
+# README
 
-These scripts automate nmap scanning across multiple hosts, and organising the results. Each script's purpose can be inferred from its name. To get the usage instructions, run them without any arguments.
+These are collections of my scripts to automate nmap tasks and integrate other tools with it.
 
-# Example
-
-```
-./nmap-multi-host-discovery-only.sh 192.168.47.1/24
-```
-
-# Note
-
-These scripts are meant to be run in `bash`, not `zsh`. Certain things break on `zsh`. If you use `zsh`, run the scripts with `bash` like:
-
-```
-bash -c "./nmap-multi-host-discovery-only.sh 192.168.47.1/24"
-```
-
-
+Each toolset has its own README wherever feasible. Others have built-in help (`--help`).
