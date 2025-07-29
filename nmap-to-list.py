@@ -3,23 +3,15 @@ from argparse import ArgumentParser
 from glob import glob
 from os import path
 
-"""
-README
-
-For multiple nmap XMLs, do:
-
-ls ./*.xml | xargs --replace={} python3 nmap-to-list.py -n {}
-cat host_to_port.txt | sort | uniq > 1.txt
-cat host_to_port_web.txt | sort | uniq > 2.txt
-cat urls_base.txt | sort | uniq > 3.txt
-mv 1.txt host_to_port.txt
-mv 2.txt host_to_port_web.txt
-mv 3.txt urls_base.txt
-"""
-
 # HELPER
 def sanitiseForCsv(text: str):
-    return text.replace(",", " ").replace("\n", ". ")
+    # Check if the value needs to be quoted
+    if any(char in text for char in ['"', ',', '\n', '\r']):
+        # Escape double quotes by replacing them with two double quotes
+        text = text.replace('"', '""')
+        # Enclose the value in double quotes
+        return f'"{text}"'
+    return text
 
 # MAIN
 parser = ArgumentParser()
@@ -53,7 +45,7 @@ else:
 hostToPort = [] # HOST:PORT
 hostToPortWeb = [] # HOST:PORT
 webUrls = [] # https://HOST:PORT
-csvContents = ["ip,port,service_type,service_name,device_type,tls_subject,http_title,notes"]
+csvContents = ["ip,port,service_type,service_name,device_type,tls_subject,http_title,system_info,notes"]
 
 # Iterate over source XMLs
 for nmapXmlFilePath in nmapXmlFilePaths:
@@ -97,19 +89,37 @@ for nmapXmlFilePath in nmapXmlFilePaths:
             # Process scripts
             scriptTlsSubject = ""
             scriptHttpTitle = ""
+            scriptSystemInfo = ""
 
             scriptElements = portElement.findall("script")
             for scriptElement in scriptElements:
+                scriptOutput = scriptElement.get("output", "")
+
                 if scriptElement is not None:
                     # TLS/SSL certificate
                     if scriptElement.get("id", "").lower() == "ssl-cert":
-                        scriptTlsSubject = scriptElement.get("output", "")
+                        scriptTlsSubject = scriptOutput
 
                     # HTTP title
                     elif scriptElement.get("id", "").lower() == "http-title":
-                        scriptHttpTitle = scriptElement.get("output", "")
+                        scriptHttpTitle = scriptOutput
 
-                    # http-ntlm-info
+                    # System information
+                    else:
+                        systemInfoScriptNames = [
+                            "http-ntlm-info",
+                            "imap-ntlm-info",
+                            "ms-sql-ntlm-info",
+                            "nntp-ntlm-info",
+                            "pop3-ntlm-info",
+                            "rdp-ntlm-info",
+                            "smtp-ntlm-info",
+                            "telnet-ntlm-info",
+                            "smb-system-info"
+                        ]
+                        for scriptName in systemInfoScriptNames:
+                            if scriptElement.get("id", "").lower() == scriptName:
+                                scriptSystemInfo += f"{scriptName}:\n{scriptOutput}\n"
 
             # Store results
 
@@ -124,12 +134,11 @@ for nmapXmlFilePath in nmapXmlFilePaths:
                 hostToPortWeb.append(f"{address}:{port}")
 
             ## CSV
-            csvContents.append(f"{sanitiseForCsv(address)},{sanitiseForCsv(port)},{sanitiseForCsv(serviceName)},{" ".join([sanitiseForCsv(serviceProduct),sanitiseForCsv(serviceVersion),sanitiseForCsv(serviceExtraInfo)])},{sanitiseForCsv(serviceDeviceType)},{sanitiseForCsv(scriptTlsSubject)},{sanitiseForCsv(scriptHttpTitle)},todo")
+            csvContents.append(f"{sanitiseForCsv(address)},{sanitiseForCsv(port)},{sanitiseForCsv(serviceName)},{" ".join([sanitiseForCsv(serviceProduct),sanitiseForCsv(serviceVersion),sanitiseForCsv(serviceExtraInfo)])},{sanitiseForCsv(serviceDeviceType)},{sanitiseForCsv(scriptTlsSubject)},{sanitiseForCsv(scriptHttpTitle)},{sanitiseForCsv(scriptSystemInfo)},todo")
 
             ## Generic host -> port mapping
             hostToPort.append(f"{address}:{port}")
             
-
 # Output files
 with open(hostToPortFileName, "a") as fileToWrite:
     for lineToWrite in hostToPort:
