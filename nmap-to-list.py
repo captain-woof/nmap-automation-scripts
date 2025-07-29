@@ -41,11 +41,21 @@ webUrls = [] # https://HOST:PORT
 csvContents = ["ip,port,service_type,service_name,device_type,tls_subject,http_title,notes"]
 
 for host in hosts:
-    address = host.find("address").attrib["addr"]
-    portsElements = host.find("ports").findall("port")
+    address = host.find("address").get("addr", "")
+    if address == "":
+        continue
+
+    portsElementsRoot = host.find("ports")
+    if portsElementsRoot is None:
+        continue
+    portsElements = portsElementsRoot.findall("port")
+    if portsElements is None:
+        continue
 
     for portElement in portsElements:
-        port = portElement.attrib["portid"]
+        port = portElement.get("portid", "")
+        if port == "":
+            continue
 
         # Process services
         serviceName = ""
@@ -56,11 +66,11 @@ for host in hosts:
 
         serviceElement = portElement.find("service")
         if serviceElement is not None:
-            serviceName = serviceElement.attrib["name"] or ""
-            serviceProduct = serviceElement.attrib["product"] or ""
-            serviceVersion = serviceElement.attrib["version"] or ""
-            serviceExtraInfo = serviceElement.attrib["extrainfo"] or ""
-            serviceDeviceType = serviceElement.attrib["devicetype"] or ""
+            serviceName = serviceElement.get("name", "")
+            serviceProduct = serviceElement.get("product", "")
+            serviceVersion = serviceElement.get("version", "")
+            serviceExtraInfo = serviceElement.get("extrainfo", "")
+            serviceDeviceType = serviceElement.get("devicetype", "")
 
         # Process scripts
         scriptTlsSubject = ""
@@ -70,12 +80,12 @@ for host in hosts:
         for scriptElement in scriptElements:
             if scriptElement is not None:
                 # TLS/SSL certificate
-                if scriptElement.attrib["id"].lower() == "ssl-cert":
-                    scriptTlsSubject = scriptElement.attrib["output"] or ""
+                if scriptElement.get("id", "").lower() == "ssl-cert":
+                    scriptTlsSubject = scriptElement.get("output", "")
 
                 # HTTP title
-                elif scriptElement.attrib["id"].lower() == "http-title":
-                    scriptHttpTitle = scriptElement.attrib["output"] or ""
+                elif scriptElement.get("id", "").lower() == "http-title":
+                    scriptHttpTitle = scriptElement.get("output", "")
 
                 # http-ntlm-info
 
