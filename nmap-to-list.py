@@ -124,12 +124,12 @@ for nmapXmlFilePath in nmapXmlFilePaths:
             # Store results
 
             ## Web host -> web port mapping (https)
-            if serviceName.lower() == "https":
+            if "https" in serviceName.lower():
                 webUrls.append(f"https://{address}:{port}")
                 hostToPortWeb.append(f"{address}:{port}")
 
             ## Web host -> web port mapping (http)
-            elif serviceName.lower() == "http":
+            elif "http" in serviceName.lower():
                 webUrls.append(f"http://{address}:{port}")
                 hostToPortWeb.append(f"{address}:{port}")
 
