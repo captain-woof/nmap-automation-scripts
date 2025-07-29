@@ -15,6 +15,11 @@ mv 2.txt host_to_port_web.txt
 mv 3.txt urls_base.txt
 """
 
+# HELPER
+def sanitiseForCsv(text: str):
+    return text.replace(",", " ").replace("\n", ". ")
+
+# MAIN
 parser = ArgumentParser()
 parser.add_argument("-n", "--nmap-xml", action="store", help="Nmap XML")
 parser.add_argument("--host-to-port", action="store", help="Output file for HOST:PORT; default: 'host_to_port.txt'", default="host_to_port.txt")
@@ -102,7 +107,7 @@ for host in hosts:
             hostToPortWeb.append(f"{address}:{port}")
 
         ## CSV
-        csvContents.append(f"{address},{port},{serviceName},{" ".join([serviceProduct,serviceVersion,serviceExtraInfo])},{serviceDeviceType},{scriptTlsSubject},{scriptHttpTitle},todo")
+        csvContents.append(f"{sanitiseForCsv(address)},{sanitiseForCsv(port)},{sanitiseForCsv(serviceName)},{" ".join([sanitiseForCsv(serviceProduct),sanitiseForCsv(serviceVersion),sanitiseForCsv(serviceExtraInfo)])},{sanitiseForCsv(serviceDeviceType)},{sanitiseForCsv(scriptTlsSubject)},{sanitiseForCsv(scriptHttpTitle)},todo")
 
         ## Generic host -> port mapping
         hostToPort.append(f"{address}:{port}")
