@@ -45,8 +45,8 @@ for addressIndex, address in enumerate(hostToPortsMap.keys()):
 
     # Command for this host
     ports = hostToPortsMap[address]
-    nmapCommand += f"Scanning {address}"
-    nmapCommand += f"nmap -T4 -Pn -sS -sV --version-intensity 3 --max-retries 3 -oX {nmapOutDir}/{address}.xml -p T:{",".join(ports)} {address}\n" # MODIFY THIS IF NEEDED
+    nmapCommand += f"echo 'Scanning {address}'\n"
+    nmapCommand += f"nmap --open --source-port 53 -Pn -sS -sC -sV -O --version-intensity 3 --max-retries 3 -oA {nmapOutDir}/{address} -p T:{",".join(ports)} {address}\n" # MODIFY THIS IF NEEDED
 
 nmapFileName = "start_nmap.sh"
 with open(nmapFileName, "w") as nmapFile:
