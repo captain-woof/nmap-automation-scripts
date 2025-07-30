@@ -124,7 +124,7 @@ for nmapXmlFilePath in nmapXmlFilePaths:
             # Store results
 
             ## Web host -> web port mapping (https)
-            if "https" in serviceName.lower():
+            if "https" in serviceName.lower() or scriptTlsSubject != "":
                 webUrls.append(f"https://{address}:{port}")
                 hostToPortWeb.append(f"{address}:{port}")
 
