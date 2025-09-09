@@ -1,7 +1,7 @@
 import xml.etree.ElementTree as ET
 from argparse import ArgumentParser
 from glob import glob
-from os import path
+from os import path, mkdir
 
 # HELPER
 def sanitiseForCsv(text: str):
@@ -18,18 +18,33 @@ parser = ArgumentParser()
 parserNmapXml = parser.add_mutually_exclusive_group(required=True)
 parserNmapXml.add_argument("-n", "--nmap-xml", action="store", help="Nmap XML file")
 parserNmapXml.add_argument("-nd", "--nmap-xml-dir", action="store", help="Directory containing multiple nmap XMLs")
-parser.add_argument("--hosts", action="store", help="Output file for HOST IPs and Names; default: 'hosts.txt'", default="hosts.txt")
-parser.add_argument("--host-to-port", action="store", help="Output file for HOST:PORT; default: 'host_to_port.txt'", default="host_to_port.txt")
-parser.add_argument("--host-to-port-web", action="store", help="Output file for HOST:PORT for web (http and https); default: 'host_to_port_web.txt'", default="host_to_port_web.txt")
-parser.add_argument("--urls-base", action="store", help="Output file for http://HOST:PORT; default: 'urls_base.txt'", default="urls_base.txt")
+parser.add_argument("-d", "--outdir", action="store", help="Output directory for result lists; default: 'nmap-lists'", default="nmap-lists")
+parser.add_argument("--hosts-ips", action="store", help="Output file for HOST IPs; default: 'hosts_ips.txt'", default="hosts_ips.txt")
+parser.add_argument("--hosts-names", action="store", help="Output file for HOST IPs and Names; default: 'hosts_names.txt'", default="hosts_names.txt")
+parser.add_argument("--ip-to-port", action="store", help="Output file for IP:PORT; default: 'ip_to_port.txt'", default="ip_to_port.txt")
+parser.add_argument("--hostname-to-port", action="store", help="Output file for HOSTNAME:PORT; default: 'hostname_to_port.txt'", default="hostname_to_port.txt")
+parser.add_argument("--ip-to-port-web", action="store", help="Output file for IP:PORT (web); default: 'ip_to_port_web.txt'", default="ip_to_port_web.txt")
+parser.add_argument("--hostname-to-port-web", action="store", help="Output file for HOSTNAME:PORT (web); default: 'hostname_to_port_web.txt'", default="hostname_to_port_web.txt")
+parser.add_argument("--urls-base", action="store", help="Output file for http://HOST:PORT (containing both IPs and hostnames); default: 'urls_base.txt'", default="urls_base.txt")
 parser.add_argument("--csv", action="store", help="Output file for CSV; default: 'nmap.csv'", default="nmap.csv")
 args = parser.parse_args()
 
-hostsFileName = args.hosts
-hostToPortFileName = args.host_to_port
-hostToPortWebFileName = args.host_to_port_web
-webUrlsFileName = args.urls_base
-csvFilePath = args.csv
+# Create output directory if needed
+try:
+    mkdir(args.outdir)
+    print(f"Output directory '{args.outdir}' created")
+except:
+    pass
+
+# Parse file paths
+hostsIpsFileName = path.join(args.outdir, args.hosts_ips)
+hostsNamesFileName = path.join(args.outdir, args.hosts_names)
+hostnameToPortFileName = path.join(args.outdir, args.hostname_to_port)
+ipToPortFileName = path.join(args.outdir, args.ip_to_port)
+ipToPortWebFileName = path.join(args.outdir, args.ip_to_port_web)
+hostnameToPortWebFileName = path.join(args.outdir, args.hostname_to_port_web)
+webUrlsFileName = path.join(args.outdir, args.urls_base)
+csvFilePathName = path.join(args.outdir, args.csv)
 nmapXmlFilePath = args.nmap_xml
 nmapXmlDirPath = args.nmap_xml_dir
 
@@ -44,11 +59,14 @@ else:
     exit(0)
 
 # Results store
-hostsInList = set() # Host IPs and Ports
-hostToPort = set() # HOST:PORT
-hostToPortWeb = set() # HOST:PORT
-webUrls = set() # https://HOST:PORT
-csvContents = set(["ip,port,service_type,service_name,device_type,tls_subject,http_title,system_info,notes"])
+hostIpsSet = set() # Host IPs
+hostnamesSet  = set() # Host Names
+ipToPortSet = set() # IP:PORT
+hostnameToPortSet = set() # HOST:PORT
+ipToPortWebSet = set() # IP:PORT
+hostnameToPortWebSet = set() # HOST:PORT
+webUrlsSet = set() # https://HOST:PORT
+csvContentsSet = set(["ip,hostname,port,service_type,service_name,device_type,tls_subject,http_title,system_info,notes"])
 
 # Iterate over source XMLs
 for nmapXmlFilePath in nmapXmlFilePaths:
@@ -132,47 +150,70 @@ for nmapXmlFilePath in nmapXmlFilePaths:
             # Store results
 
             ## Hosts (IPs and Names)
-            hostsInList.add(address)
-            hostsInList = hostsInList.union(hostnames)
+            hostIpsSet.add(address)
+            hostnamesSet = hostnamesSet.union(hostnames)
 
-            ## Web host -> web port mapping (https)
+            ## Web host -> web port mapping (http and https)
+            if "http" in serviceName.lower() or scriptTlsSubject != "":
+                ipToPortWebSet.add(f"{address}:{port}")
+                for hostname in hostnames:
+                    hostnameToPortWebSet.add(f"{hostname}:{port}")
+
             if "https" in serviceName.lower() or scriptTlsSubject != "":
-                webUrls.add(f"https://{address}:{port}")
-                hostToPortWeb.add(f"{address}:{port}")
+                webUrlsSet.add(f"https://{address}:{port}")
+                for hostname in hostnames:
+                    webUrlsSet.add(f"https://{hostname}:{port}")
 
-            ## Web host -> web port mapping (http)
             elif "http" in serviceName.lower():
-                webUrls.add(f"http://{address}:{port}")
-                hostToPortWeb.add(f"{address}:{port}")
+                webUrlsSet.add(f"http://{address}:{port}")
+                for hostname in hostnames:
+                    webUrlsSet.add(f"http://{hostname}:{port}")
 
             ## CSV
-            csvContents.add(f"{sanitiseForCsv(address)},{sanitiseForCsv(port)},{sanitiseForCsv(serviceName)},{" ".join([sanitiseForCsv(serviceProduct),sanitiseForCsv(serviceVersion),sanitiseForCsv(serviceExtraInfo)])},{sanitiseForCsv(serviceDeviceType)},{sanitiseForCsv(scriptTlsSubject)},{sanitiseForCsv(scriptHttpTitle)},{sanitiseForCsv(scriptSystemInfo)},todo")
+            csvContentsSet.add(f"{sanitiseForCsv(address)},{sanitiseForCsv("/".join(hostnames))},{sanitiseForCsv(port)},{sanitiseForCsv(serviceName)},{" ".join([sanitiseForCsv(serviceProduct),sanitiseForCsv(serviceVersion),sanitiseForCsv(serviceExtraInfo)])},{sanitiseForCsv(serviceDeviceType)},{sanitiseForCsv(scriptTlsSubject)},{sanitiseForCsv(scriptHttpTitle)},{sanitiseForCsv(scriptSystemInfo)},todo")
 
             ## Generic host -> port mapping
-            hostToPort.add(f"{address}:{port}")
+            ipToPortSet.add(f"{address}:{port}")
+            for hostname in hostnames:
+                hostnameToPortSet.add(f"{hostname}:{port}")
             
 # Output files
-with open(hostsFileName, "w") as fileToWrite:
-    for lineToWrite in hostsInList:
+with open(hostsIpsFileName, "w") as fileToWrite:
+    for lineToWrite in hostIpsSet:
         fileToWrite.write(lineToWrite + "\n")
-    print(f"HOST IPs and Names list written to '{hostsFileName}'")
+    print(f"HOST IPs list written to '{hostsIpsFileName}'")
 
-with open(hostToPortFileName, "w") as fileToWrite:
-    for lineToWrite in hostToPort:
+with open(hostsNamesFileName, "w") as fileToWrite:
+    for lineToWrite in hostnamesSet:
         fileToWrite.write(lineToWrite + "\n")
-    print(f"HOST:PORT list written to '{hostToPortFileName}'")
+    print(f"HOST Names list written to '{hostsNamesFileName}'")
 
-with open(hostToPortWebFileName, "w") as fileToWrite:
-    for lineToWrite in hostToPortWeb:
+with open(hostnameToPortFileName, "w") as fileToWrite:
+    for lineToWrite in hostnameToPortSet:
         fileToWrite.write(lineToWrite + "\n")
-    print(f"HOST:PORT (web) list written to '{hostToPortWebFileName}'")
+    print(f"HOSTNAME:PORT list written to '{hostnameToPortFileName}'")
+
+with open(ipToPortFileName, "w") as fileToWrite:
+    for lineToWrite in ipToPortSet:
+        fileToWrite.write(lineToWrite + "\n")
+    print(f"IP:PORT list written to '{ipToPortFileName}'")
+
+with open(hostnameToPortWebFileName, "w") as fileToWrite:
+    for lineToWrite in hostnameToPortWebSet:
+        fileToWrite.write(lineToWrite + "\n")
+    print(f"HOSTNAME:PORT (web) list written to '{hostnameToPortWebFileName}'")
+
+with open(ipToPortWebFileName, "w") as fileToWrite:
+    for lineToWrite in ipToPortWebSet:
+        fileToWrite.write(lineToWrite + "\n")
+    print(f"IP:PORT (web) list written to '{ipToPortWebFileName}'")
 
 with open(webUrlsFileName, "w") as fileToWrite:
     for lineToWrite in webUrls:
         fileToWrite.write(lineToWrite + "\n")
     print(f"http://HOST:PORT list written to '{webUrlsFileName}'")
 
-with open(csvFilePath, "w") as fileToWrite:
+with open(csvFilePathName, "w") as fileToWrite:
     for lineToWrite in csvContents:
         fileToWrite.write(lineToWrite + "\n")
     print(f"CSV written to '{csvFilePath}'")
