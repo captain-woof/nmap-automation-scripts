@@ -170,7 +170,7 @@ for nmapXmlFilePath in nmapXmlFilePaths:
                     webUrlsSet.add(f"http://{hostname}:{port}")
 
             ## CSV
-            csvContentsSet.add(f"{sanitiseForCsv(address)},{sanitiseForCsv("/".join(hostnames))},{sanitiseForCsv(port)},{sanitiseForCsv(serviceName)},{" ".join([sanitiseForCsv(serviceProduct),sanitiseForCsv(serviceVersion),sanitiseForCsv(serviceExtraInfo)])},{sanitiseForCsv(serviceDeviceType)},{sanitiseForCsv(scriptTlsSubject)},{sanitiseForCsv(scriptHttpTitle)},{sanitiseForCsv(scriptSystemInfo)},todo")
+            csvContentsSet.add(f"{sanitiseForCsv(address)},{sanitiseForCsv('/'.join(hostnames))},{sanitiseForCsv(port)},{sanitiseForCsv(serviceName)},{' '.join([sanitiseForCsv(serviceProduct),sanitiseForCsv(serviceVersion),sanitiseForCsv(serviceExtraInfo)])},{sanitiseForCsv(serviceDeviceType)},{sanitiseForCsv(scriptTlsSubject)},{sanitiseForCsv(scriptHttpTitle)},{sanitiseForCsv(scriptSystemInfo)},todo")
 
             ## Generic host -> port mapping
             ipToPortSet.add(f"{address}:{port}")
@@ -209,11 +209,11 @@ with open(ipToPortWebFileName, "w") as fileToWrite:
     print(f"IP:PORT (web) list written to '{ipToPortWebFileName}'")
 
 with open(webUrlsFileName, "w") as fileToWrite:
-    for lineToWrite in webUrls:
+    for lineToWrite in webUrlsSet:
         fileToWrite.write(lineToWrite + "\n")
     print(f"http://HOST:PORT list written to '{webUrlsFileName}'")
 
 with open(csvFilePathName, "w") as fileToWrite:
-    for lineToWrite in csvContents:
+    for lineToWrite in csvContentsSet:
         fileToWrite.write(lineToWrite + "\n")
     print(f"CSV written to '{csvFilePath}'")
