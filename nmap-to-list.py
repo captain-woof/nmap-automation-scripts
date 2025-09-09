@@ -216,4 +216,4 @@ with open(webUrlsFileName, "w") as fileToWrite:
 with open(csvFilePathName, "w") as fileToWrite:
     for lineToWrite in csvContentsSet:
         fileToWrite.write(lineToWrite + "\n")
-    print(f"CSV written to '{csvFilePath}'")
+    print(f"CSV written to '{csvFilePathName}'")
