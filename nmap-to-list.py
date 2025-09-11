@@ -66,7 +66,7 @@ hostnameToPortSet = set() # HOST:PORT
 ipToPortWebSet = set() # IP:PORT
 hostnameToPortWebSet = set() # HOST:PORT
 webUrlsSet = set() # https://HOST:PORT
-csvContentsSet = set(["ip,hostname,port,service_type,service_name,device_type,tls_subject,http_title,system_info,notes"])
+csvContentsSet = set() # ip,hostname,port,service_type,service_name,device_type,tls_subject,http_title,system_info,notes
 
 # Iterate over source XMLs
 for nmapXmlFilePath in nmapXmlFilePaths:
@@ -214,6 +214,7 @@ with open(webUrlsFileName, "w") as fileToWrite:
     print(f"http://HOST:PORT list written to '{webUrlsFileName}'")
 
 with open(csvFilePathName, "w") as fileToWrite:
+    fileToWrite.write("ip,hostname,port,service_type,service_name,device_type,tls_subject,http_title,system_info,notes\n")
     for lineToWrite in csvContentsSet:
         fileToWrite.write(lineToWrite + "\n")
     print(f"CSV written to '{csvFilePathName}'")
